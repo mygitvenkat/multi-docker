@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t mygitvenkat/react-test -f ./client/dockerfile.dev ./client
+
+script:
+  - docker run mygitvenkat/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t mygitvenkat/multi-client ./client
+  - docker build -t mygitvenkat/multi-nginx ./nginx
+  - docker build -t mygitvenkat/multi-server ./server
+  - docker build -t mygitvenkat/multi-worker ./worker
+  # Log in to Docker CLI, echo password and use it as standrad in for the netxt command
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  #Take those images and push them to docker hub
+  -docker push mygitvenkat/multi-client
+  -docker push mygitvenkat/multi-nginx
+  -docker push mygitvenkat/multi-server
+  -docker push mygitvenkat/multi-worker
